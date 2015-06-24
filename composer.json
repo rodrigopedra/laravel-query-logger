@@ -1,0 +1,25 @@
+{
+  "name": "rodrigopedra/laravel-query-logger",
+  "description": "Laravel query logger",
+  "keywords": ["query logger", "rodrigopedra", "laravel"],
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Rodrigo Pedra Brum",
+      "email": "rodrigo.pedra@gmail.com"
+    }
+  ],
+  "require": {
+    "illuminate/contracts": ">=5.0",
+    "illuminate/database": ">=5.0",
+    "illuminate/support": ">=5.0",
+    "illuminate/events": ">=5.0",
+    "illuminate/log": ">=5.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "RodrigoPedra\\": "src/"
+    }
+  },
+  "minimum-stability": "dev"
+}
