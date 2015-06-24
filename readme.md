@@ -1,5 +1,7 @@
 # Query Logger for Laravel 5
 
+Logs all queries when `APP_DEBUG=true`
+
 ## Installation
 
 ```
