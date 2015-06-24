@@ -16,7 +16,7 @@ Add the provider to your config/app.php:
 'providers' => [
     /* ... */
     
-    'RodrigoPedra\LDAP\LDAPServiceProvider',
+    'RodrigoPedra\QueryLogger\QueryLoggerServiceProvider',
 ]
 ```
 
