@@ -2,7 +2,7 @@
   "name": "rodrigopedra/laravel-query-logger",
   "description": "Laravel query logger",
   "keywords": ["query logger", "rodrigopedra", "laravel"],
-  "license": "proprietary",
+  "license": "MIT",
   "authors": [
     {
       "name": "Rodrigo Pedra Brum",
