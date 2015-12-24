@@ -1,4 +1,6 @@
-# Query Logger for Laravel 5.x
+# Query Logger for Laravel 5.2
+
+*for Laravel 5.0 and 5.1 use the 1.0 release*
 
 Logs all queries when `APP_DEBUG=true`
 
