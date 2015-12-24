@@ -10,11 +10,11 @@
     }
   ],
   "require": {
-    "illuminate/contracts": ">=5.0",
-    "illuminate/database": ">=5.0",
-    "illuminate/support": ">=5.0",
-    "illuminate/events": ">=5.0",
-    "illuminate/log": ">=5.0"
+    "illuminate/contracts": ">=5.2",
+    "illuminate/database": ">=5.2",
+    "illuminate/support": ">=5.2",
+    "illuminate/events": ">=5.2",
+    "illuminate/log": ">=5.2"
   },
   "autoload": {
     "psr-4": {
