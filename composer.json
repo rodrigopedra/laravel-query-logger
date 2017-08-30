@@ -1,7 +1,11 @@
 {
   "name": "rodrigopedra/laravel-query-logger",
   "description": "Laravel query logger",
-  "keywords": ["query logger", "rodrigopedra", "laravel"],
+  "keywords": [
+    "query logger",
+    "rodrigopedra",
+    "laravel"
+  ],
   "license": "MIT",
   "authors": [
     {
@@ -10,16 +14,19 @@
     }
   ],
   "require": {
-    "illuminate/contracts": ">=5.2",
-    "illuminate/database": ">=5.2",
-    "illuminate/support": ">=5.2",
-    "illuminate/events": ">=5.2",
-    "illuminate/log": ">=5.2"
+    "php": ">=5.4",
+    "illuminate/support": "^5.2|^5.3|^5.4|^5.5"
   },
   "autoload": {
     "psr-4": {
-      "RodrigoPedra\\": "src/"
+      "RodrigoPedra\\QueryLogger\\": "src/QueryLogger/"
     }
   },
-  "minimum-stability": "dev"
+  "extra": {
+    "laravel": {
+      "providers": [
+        "RodrigoPedra\\QueryLogger\\QueryLoggerServiceProvider"
+      ]
+    }
+  }
 }
