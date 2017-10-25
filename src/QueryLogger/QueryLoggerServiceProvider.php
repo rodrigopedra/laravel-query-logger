@@ -15,7 +15,7 @@ class QueryLoggerServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if (env( 'APP_DEBUG', false )) {
+        if ($this->app[ 'config' ]->get( 'app.debug' ) === true) {
             $this->startQueryLogger();
         } else {
             DB::connection()->disableQueryLog();
