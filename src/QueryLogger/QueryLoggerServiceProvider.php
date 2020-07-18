@@ -2,53 +2,59 @@
 
 namespace RodrigoPedra\QueryLogger;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Database\Connection;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\ServiceProvider;
+use Psr\Log\LoggerInterface;
 
 class QueryLoggerServiceProvider extends ServiceProvider
 {
-    /**
-     * Bootstrap the application services.
-     *
-     * @return void
-     */
-    public function boot()
+    public function boot(Repository $config, LoggerInterface $logger, Connection $connection): void
     {
-        if ($this->app[ 'config' ]->get( 'app.debug' ) === true) {
-            $this->startQueryLogger();
+        if ($config->get('app.debug') === true) {
+            $this->startQueryLogger($logger, $connection);
         } else {
-            DB::connection()->disableQueryLog();
+            $connection->disableQueryLog();
         }
     }
 
-    protected function startQueryLogger()
+    protected function startQueryLogger(LoggerInterface $logger, Connection $connection): void
     {
-        DB::listen( function ( $event ) {
-            $bindings = $event->bindings;
-            $time     = $event->time;
-            $query    = $event->sql;
-
-            $data = compact( 'bindings', 'time' );
-
-            // Format binding data for sql insertion
-            foreach ($bindings as $i => $binding) {
-                if (is_object( $binding ) && $binding instanceof \DateTime) {
-                    $bindings[ $i ] = '\'' . $binding->format( 'Y-m-d H:i:s' ) . '\'';
-                } elseif (is_null( $binding )) {
-                    $bindings[ $i ] = 'NULL';
-                } elseif (is_bool( $binding )) {
-                    $bindings[ $i ] = $binding ? '1' : '0';
-                } elseif (is_string( $binding )) {
-                    $bindings[ $i ] = "'{$binding}'";
+        $connection->listen(function (QueryExecuted $event) use ($logger): void {
+            // Format binding values
+            $bindings = \array_map(static function ($value) {
+                if (\is_null($value)) {
+                    return 'NULL';
                 }
-            }
 
-            $query = preg_replace_callback( '/\?/', function () use ( &$bindings ) {
-                return array_shift( $bindings );
-            }, $query );
+                if (\is_bool($value)) {
+                    return $value ? '1' : '0';
+                }
 
-            Log::info( $query, $data );
-        } );
+                if (\is_int($value) || \is_float($value)) {
+                    return \strval($value);
+                }
+
+                if (\is_scalar($value)) {
+                    return "'{$value}'";
+                }
+
+                if (\is_object($value) && $value instanceof \DateTime) {
+                    return '\'' . $value->format('Y-m-d H:i:s') . '\'';
+                }
+
+                if (\is_object($value) && \method_exists($value, '__toString')) {
+                    return "'{$value->__toString()}'";
+                }
+
+                return $value;
+            }, $event->bindings);
+
+            // Replace SQL statement placeholders
+            $query = \preg_replace_callback('/\?/', static fn () => \array_shift($bindings), $event->sql);
+
+            $logger->info($query, ['bindings' => $bindings, 'time' => $event->time]);
+        });
     }
 }
