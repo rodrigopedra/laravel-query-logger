@@ -52,7 +52,9 @@ class QueryLoggerServiceProvider extends ServiceProvider
             }, $event->bindings);
 
             // Replace SQL statement placeholders
-            $query = \preg_replace_callback('/\?/', static fn () => \array_shift($bindings), $event->sql);
+            $query = \preg_replace_callback('/\?/', static function () use (&$bindings) {
+                return \array_shift($bindings);
+            }, $event->sql);
 
             $logger->info($query, ['bindings' => $bindings, 'time' => $event->time]);
         });
