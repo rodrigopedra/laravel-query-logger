@@ -21,7 +21,7 @@ class QueryLoggerServiceProvider extends ServiceProvider
 
     protected function startQueryLogger(LoggerInterface $logger, Connection $connection): void
     {
-        $connection->listen(function (QueryExecuted $event) use ($logger): void {
+        $connection->listen(static function (QueryExecuted $event) use ($logger): void {
             // Format binding values
             $bindings = \array_map(static function ($value) {
                 if (\is_null($value)) {
