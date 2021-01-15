@@ -6,6 +6,7 @@ use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 use Psr\Log\LoggerInterface;
 
 class QueryLoggerServiceProvider extends ServiceProvider
@@ -52,11 +53,9 @@ class QueryLoggerServiceProvider extends ServiceProvider
             }, $event->bindings);
 
             // Replace SQL statement placeholders
-            $query = \preg_replace_callback('/\?/', static function () use (&$bindings) {
-                return \array_shift($bindings);
-            }, $event->sql);
+            $query = Str::replaceArray('?', $bindings, $event->sql);
 
-            $logger->info($query, ['bindings' => $bindings, 'time' => $event->time]);
+            $logger->info($query, ['bindings' => $event->bindings, 'time' => $event->time]);
         });
     }
 }
