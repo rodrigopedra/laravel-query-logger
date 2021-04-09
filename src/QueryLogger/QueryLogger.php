@@ -84,7 +84,7 @@ class QueryLogger
         }
 
         if (\is_object($value) && \is_a($value, \DateTimeInterface::class)) {
-            $value = $value->format('Y-m-d Hï:i:s');
+            $value = $value->format('Y-m-d H:i:s');
         }
 
         // objects not implementing __toString() or toString() will fail here
