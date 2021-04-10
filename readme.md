@@ -10,7 +10,7 @@ This package tries to replace the bindings with their values so SQL queries beco
 ## Installation
 
 ```
-composer require rodrigopedra/laravel-query-logger
+composer require rodrigopedra/laravel-query-logger --dev
 ```
 
 ## Configuration

@@ -14,34 +14,34 @@
 
 namespace RodrigoPedra\QueryLogger;
 
-use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Events\QueryExecuted;
 use Psr\Log\LoggerInterface;
 
 class QueryLogger
 {
-    protected ConnectionInterface $connection;
     protected LoggerInterface $logger;
-    protected $pdo = null;
 
-    public function __construct(ConnectionInterface $connection, LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger)
     {
-        $this->connection = $connection;
         $this->logger = $logger;
-
-        if (\method_exists($connection, 'getPdo')) {
-            $this->pdo = $connection->getPdo();
-        }
     }
 
     public function handle(QueryExecuted $event)
     {
-        $bindings = $this->connection->prepareBindings($event->bindings);
-        $bindings = \array_map([$this, 'prepareValue'], $bindings);
+        $pdo = \method_exists($event->connection, 'getPdo')
+            ? $event->connection->getPdo()
+            : null;
+
+        $bindings = $event->connection->prepareBindings($event->bindings);
+        $bindings = \array_map(fn ($value) => $this->prepareValue($pdo, $value), $bindings);
 
         $query = $this->prepareQuery($event->sql, $bindings);
 
-        $this->logger->info($query, ['bindings' => $event->bindings, 'time' => $event->time]);
+        $this->logger->info($query, [
+            'bindings' => $event->bindings,
+            'time' => $event->time,
+            'connection' => $event->connectionName,
+        ]);
     }
 
     protected function prepareQuery(string $query, array $bindings): string
@@ -57,7 +57,7 @@ class QueryLogger
         return $query;
     }
 
-    protected function prepareValue($value): string
+    protected function prepareValue($pdo, $value): string
     {
         if (\is_null($value)) {
             return 'NULL';
@@ -72,7 +72,7 @@ class QueryLogger
         }
 
         if (\is_string($value) && ! \mb_check_encoding($value, 'UTF-8')) {
-            return $this->quote('[BINARY DATA]');
+            return $this->quote($pdo, '[BINARY DATA]');
         }
 
         if (\is_object($value) && \method_exists($value, '__toString')) {
@@ -88,13 +88,13 @@ class QueryLogger
         }
 
         // objects not implementing __toString() or toString() will fail here
-        return $this->quote(\strval($value));
+        return $this->quote($pdo, \strval($value));
     }
 
-    protected function quote(string $value): string
+    protected function quote($pdo, string $value): string
     {
-        if ($this->pdo) {
-            return $this->pdo->quote($value);
+        if ($pdo) {
+            return $pdo->quote($value);
         }
 
         $search = ["\\", "\x00", "\n", "\r", "'", '"', "\x1a"];
