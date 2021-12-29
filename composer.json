@@ -15,9 +15,9 @@
   ],
   "require": {
     "php": ">=7.4",
-    "illuminate/contracts": "^6.20.14|^7.30.4|^8.0",
-    "illuminate/support": "^6.20.14|^7.30.4|^8.0",
-    "illuminate/database": "^6.20.14|^7.30.4|^8.0",
+    "illuminate/contracts": "^6.20.14|^7.30.4|^8.40",
+    "illuminate/support": "^6.20.14|^7.30.4|^8.40",
+    "illuminate/database": "^6.20.14|^7.30.4|^8.40",
     "psr/log": "^1|^2|^3"
   },
   "autoload": {
