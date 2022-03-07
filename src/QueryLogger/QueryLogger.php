@@ -14,16 +14,19 @@
 
 namespace RodrigoPedra\QueryLogger;
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Events\QueryExecuted;
 use Psr\Log\LoggerInterface;
 
 class QueryLogger
 {
     protected LoggerInterface $logger;
+    protected Repository $config;
 
-    public function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, Repository $config)
     {
         $this->logger = $logger;
+        $this->config = $config;
     }
 
     public function handle(QueryExecuted $event)
@@ -41,6 +44,7 @@ class QueryLogger
             'bindings' => $event->bindings,
             'time' => $event->time,
             'connection' => $event->connectionName,
+            'database' => $this->config->get("database.connections.{$event->connectionName}.database"),
         ]);
     }
 
@@ -57,7 +61,7 @@ class QueryLogger
         return $query;
     }
 
-    protected function prepareValue($pdo, $value): string
+    protected function prepareValue(?\PDO $pdo, $value): string
     {
         if (\is_null($value)) {
             return 'NULL';
@@ -75,23 +79,23 @@ class QueryLogger
             return $this->quote($pdo, '[BINARY DATA]');
         }
 
-        if (\is_object($value) && \method_exists($value, '__toString')) {
-            $value = \strval($value);
-        }
-
         if (\is_object($value) && \method_exists($value, 'toString')) {
             $value = $value->toString();
         }
 
-        if (\is_object($value) && \is_a($value, \DateTimeInterface::class)) {
+        if ($value instanceof \DateTimeInterface) {
             $value = $value->format('Y-m-d H:i:s');
+        }
+
+        if ($value instanceof \Stringable) {
+            $value = \strval($value);
         }
 
         // objects not implementing __toString() or toString() will fail here
         return $this->quote($pdo, \strval($value));
     }
 
-    protected function quote($pdo, string $value): string
+    protected function quote(?\PDO $pdo, string $value): string
     {
         if ($pdo) {
             return $pdo->quote($value);
