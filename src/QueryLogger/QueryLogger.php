@@ -115,7 +115,7 @@ class QueryLogger
         $vendor = \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR;
 
         foreach ($stack as $trace) {
-            if (! \str_contains($trace['file'], $vendor)) {
+            if (\array_key_exists('file', $trace) && ! \str_contains($trace['file'], $vendor)) {
                 return Arr::only($trace, ['file', 'line', 'function']);
             }
         }
