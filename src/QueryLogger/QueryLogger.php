@@ -16,6 +16,7 @@ namespace RodrigoPedra\QueryLogger;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Arr;
 use Psr\Log\LoggerInterface;
 
 class QueryLogger
@@ -29,7 +30,7 @@ class QueryLogger
         $this->config = $config;
     }
 
-    public function handle(QueryExecuted $event)
+    public function handle(QueryExecuted $event): void
     {
         $pdo = \method_exists($event->connection, 'getPdo')
             ? $event->connection->getPdo()
@@ -45,6 +46,7 @@ class QueryLogger
             'time' => $event->time,
             'connection' => $event->connectionName,
             'database' => $this->config->get("database.connections.{$event->connectionName}.database"),
+            'callSpot' => $this->guessCallSpot(),
         ]);
     }
 
@@ -105,5 +107,19 @@ class QueryLogger
         $replace = ["\\\\", "\\0", "\\n", "\\r", "\'", '\"', "\\Z"];
 
         return "'" . \str_replace($search, $replace, $value) . "'";
+    }
+
+    protected function guessCallSpot(): array
+    {
+        $stack = \debug_backtrace(\DEBUG_BACKTRACE_IGNORE_ARGS);
+        $vendor = \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR;
+
+        foreach ($stack as $trace) {
+            if (! \str_contains($trace['file'], $vendor)) {
+                return Arr::only($trace, ['file', 'line', 'function']);
+            }
+        }
+
+        return ['file' => null, 'line' => null, 'function' => null];
     }
 }
