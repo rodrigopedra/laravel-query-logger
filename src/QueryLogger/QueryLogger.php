@@ -14,19 +14,23 @@
 
 namespace RodrigoPedra\QueryLogger;
 
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Support\Arr;
 use Psr\Log\LoggerInterface;
 
 class QueryLogger
 {
     protected LoggerInterface $logger;
+    protected Repository $config;
 
-    public function __construct(LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, Repository $config)
     {
         $this->logger = $logger;
+        $this->config = $config;
     }
 
-    public function handle(QueryExecuted $event)
+    public function handle(QueryExecuted $event): void
     {
         $pdo = \method_exists($event->connection, 'getPdo')
             ? $event->connection->getPdo()
@@ -41,6 +45,8 @@ class QueryLogger
             'bindings' => $event->bindings,
             'time' => $event->time,
             'connection' => $event->connectionName,
+            'database' => $this->config->get("database.connections.{$event->connectionName}.database"),
+            'callSpot' => $this->guessCallSpot(),
         ]);
     }
 
@@ -57,7 +63,7 @@ class QueryLogger
         return $query;
     }
 
-    protected function prepareValue($pdo, $value): string
+    protected function prepareValue(?\PDO $pdo, $value): string
     {
         if (\is_null($value)) {
             return 'NULL';
@@ -75,23 +81,23 @@ class QueryLogger
             return $this->quote($pdo, '[BINARY DATA]');
         }
 
-        if (\is_object($value) && \method_exists($value, '__toString')) {
-            $value = \strval($value);
-        }
-
         if (\is_object($value) && \method_exists($value, 'toString')) {
             $value = $value->toString();
         }
 
-        if (\is_object($value) && \is_a($value, \DateTimeInterface::class)) {
+        if ($value instanceof \DateTimeInterface) {
             $value = $value->format('Y-m-d H:i:s');
+        }
+
+        if (\is_object($value) && \method_exists($value, '__toString')) {
+            $value = \strval($value);
         }
 
         // objects not implementing __toString() or toString() will fail here
         return $this->quote($pdo, \strval($value));
     }
 
-    protected function quote($pdo, string $value): string
+    protected function quote(?\PDO $pdo, string $value): string
     {
         if ($pdo) {
             return $pdo->quote($value);
@@ -101,5 +107,19 @@ class QueryLogger
         $replace = ["\\\\", "\\0", "\\n", "\\r", "\'", '\"', "\\Z"];
 
         return "'" . \str_replace($search, $replace, $value) . "'";
+    }
+
+    protected function guessCallSpot(): array
+    {
+        $stack = \debug_backtrace(\DEBUG_BACKTRACE_IGNORE_ARGS);
+        $vendor = \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR;
+
+        foreach ($stack as $trace) {
+            if (\array_key_exists('file', $trace) && ! \str_contains($trace['file'], $vendor)) {
+                return Arr::only($trace, ['file', 'line', 'function']);
+            }
+        }
+
+        return ['file' => null, 'line' => null, 'function' => null];
     }
 }

@@ -15,6 +15,7 @@
   ],
   "require": {
     "php": ">=7.4",
+    "ext-pdo": "*",
     "illuminate/contracts": "^6.20.14|^7.30.4|^8.40|^9.0",
     "illuminate/support": "^6.20.14|^7.30.4|^8.40|^9.0",
     "illuminate/database": "^6.20.14|^7.30.4|^8.40|^9.0",
