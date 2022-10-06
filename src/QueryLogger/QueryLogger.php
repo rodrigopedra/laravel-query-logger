@@ -36,8 +36,10 @@ class QueryLogger
             ? $event->connection->getPdo()
             : null;
 
+        $dateFormat = $event->connection->getQueryGrammar()->getDateFormat();
+
         $bindings = $event->connection->prepareBindings($event->bindings);
-        $bindings = \array_map(fn ($value) => $this->prepareValue($pdo, $value), $bindings);
+        $bindings = \array_map(fn ($value) => $this->prepareValue($pdo, $dateFormat, $value), $bindings);
 
         $query = $this->prepareQuery($event->sql, $bindings);
 
@@ -63,7 +65,7 @@ class QueryLogger
         return $query;
     }
 
-    protected function prepareValue(?\PDO $pdo, $value): string
+    protected function prepareValue(?\PDO $pdo, string $dateFormat, $value): string
     {
         if (\is_null($value)) {
             return 'NULL';
@@ -81,16 +83,16 @@ class QueryLogger
             return $this->quote($pdo, '[BINARY DATA]');
         }
 
-        if (\is_object($value) && \method_exists($value, 'toString')) {
-            $value = $value->toString();
-        }
-
         if ($value instanceof \DateTimeInterface) {
-            $value = $value->format('Y-m-d H:i:s');
+            $value = $value->format($dateFormat);
         }
 
         if ($value instanceof \Stringable) {
             $value = \strval($value);
+        }
+
+        if (\is_object($value) && \method_exists($value, 'toString')) {
+            $value = $value->toString();
         }
 
         // objects not implementing __toString() or toString() will fail here
