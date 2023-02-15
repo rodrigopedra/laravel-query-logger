@@ -19,16 +19,12 @@ use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\Arr;
 use Psr\Log\LoggerInterface;
 
-class QueryLogger
+final class QueryLogger
 {
-    protected LoggerInterface $logger;
-    protected Repository $config;
-
-    public function __construct(LoggerInterface $logger, Repository $config)
-    {
-        $this->logger = $logger;
-        $this->config = $config;
-    }
+    public function __construct(
+        private readonly LoggerInterface $logger,
+        private readonly Repository $config,
+    ) {}
 
     public function handle(QueryExecuted $event): void
     {

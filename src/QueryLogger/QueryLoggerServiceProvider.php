@@ -9,7 +9,7 @@ use Illuminate\Support\ServiceProvider;
 
 class QueryLoggerServiceProvider extends ServiceProvider
 {
-    public function boot(Repository $config, Dispatcher $events)
+    public function boot(Repository $config, Dispatcher $events): void
     {
         if ($config->get('app.debug') === true) {
             $events->listen(QueryExecuted::class, QueryLogger::class);
