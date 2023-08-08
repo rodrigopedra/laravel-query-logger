@@ -40,10 +40,10 @@ final class QueryLogger
         $query = $this->prepareQuery($event->sql, $bindings);
 
         $this->logger->info($query, [
-            'bindings' => $event->bindings,
             'time' => $event->time,
             'connection' => $event->connectionName,
             'database' => $this->config->get("database.connections.{$event->connectionName}.database"),
+            'bindings' => $event->bindings,
             'callSpot' => $this->guessCallSpot(),
         ]);
     }
