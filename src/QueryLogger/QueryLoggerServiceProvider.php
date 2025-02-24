@@ -9,6 +9,10 @@ use Illuminate\Support\ServiceProvider;
 
 class QueryLoggerServiceProvider extends ServiceProvider
 {
+    public array $singletons = [
+        QueryLogger::class,
+    ];
+
     public function boot(Repository $config, Dispatcher $events): void
     {
         if ($config->get('app.debug') === true) {
