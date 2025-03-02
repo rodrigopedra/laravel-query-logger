@@ -2,7 +2,6 @@
 
 namespace RodrigoPedra\QueryLogger;
 
-use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Support\ServiceProvider;
@@ -13,9 +12,9 @@ class QueryLoggerServiceProvider extends ServiceProvider
         QueryLogger::class,
     ];
 
-    public function boot(Repository $config, Dispatcher $events): void
+    public function boot(Dispatcher $events): void
     {
-        if ($config->get('app.debug') === true) {
+        if ($this->app->hasDebugModeEnabled()) {
             $events->listen(QueryExecuted::class, QueryLogger::class);
         }
     }
